@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Startups Viz</title>
+  <link rel="stylesheet" href="./static/lib/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./static/lib/css/keen-dashboards.css">
+  <link rel="stylesheet" href="./static/lib/css/jquery-ui.css">
+  <script src="./static/lib/js/jquery.min.js"></script>
+  <script src="./static/lib/js/jquery-ui.js"></script>
+  <script src="./static/lib/js/bootstrap.min.js"></script>
+  <script src="./static/lib/js/holder.js"></script>
+  <script src="./static/lib/js/d3.js"></script>
+  <script src="./static/lib/js/queue.js"></script>
+<script src="./static/lib/js/underscore_min.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+ <script src="./static/lib/js/d3-tip.js"></script>
+  <script>
+    Holder.add_theme("white", { background:"#fff", foreground:"#a7a7a7", size:10 });
+  </script>
+    <style>
+
+        .navbar-default {
+            background-color: #1F95B0;
+        }
+       .navbar-default .navbar-brand{
+           color: whitesmoke;
+           font-size: 25px;
+        }
+
+#R, #G, #B {
+	width: 300px;
+}
+.label {
+  font-size: .9em;
+}
+.label.strong {
+  font-weight: 900;
+}
+.bar-label {
+  font-size: .8em;
+  fill: #fff;
+}
+.legend {
+  font-size: .9em;
+  margin-bottom: 10px;
+}
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  margin-left: 8px;
+}
+.swatch:first-of-type {
+  margin-left: 0px;
+}
+
+
+#fundingSlider .ui-slider-handle { background: #83a260; }
+#dateRangeSlider .ui-slider-range { background: #83a260; }
+
+body{
+    overflow: hidden;
+}
+        body.application > .container-fluid{
+
+        }
+
+        .tooltip {
+                position: absolute;
+                text-align: center;
+                width: 200px;
+                height: 90px;
+                padding: 2px;
+                font: 12px sans-serif;
+                background: lightsteelblue;
+                border: 0px;
+                border-radius: 8px;
+                pointer-events: none;
+                border-right:2px solid steelblue;
+                border-bottom:2px solid steelblue;
+}
+
+               /*css code for scatter plot*/
+        rect {
+  fill: 'transparent';
+  shape-rendering: crispEdges;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: rgba(255, 255, 255,1);
+  shape-rendering: crispEdges;
+}
+
+.axisLine {
+  fill: none;
+  shape-rendering: crispEdges;
+  stroke: rgba(255, 255, 255,0.1);
+  stroke-width: 2px;
+}
+
+.dot {
+  fill-opacity: 0.9;
+}
+
+.d3-tip {
+  font-weight: bold;
+  padding: 12px;
+ background: rgb(61, 126, 152);
+  color: #fff;
+  border-radius: 2px;
+  position: absolute;
+  width: 500px;
+  pointer-events: none;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(255, 255, 255, 255 );
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+
+
+.background {
+                fill: none;
+                pointer-events: all;
+            }
+
+            .feature {
+                fill: #ccc;
+                cursor: pointer;
+            }
+    </style>
+</head>
+<body class="application" onload="createGraphs()">
+
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="./">Home</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+
+    <div class="row">
+
+      <div class="col-md-7">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="chart-wrapper">
+              <div class="chart-title">
+                Companies Distribution in US Counties
+              </div>
+              <div class="chart-stage" id="choropleth" style="height: 500px; max-width: 100%;">
+                  <div id="choroPleth" style="height: 500px; max-width: 100%;"></div>
+              </div>
+              <div class="chart-notes">
+                Color of Counties represents average of Funding in it.
+              </div>
+            </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="chart-wrapper">
+                            <div class="chart-title">
+            Filter Options
+          </div>
+          <div class="chart-stage" id="filterOptions">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                        <div class="navbar-header">
+                            <p class="navbar-brand">Filters</p>
+                        </div>
+                        <form class="navbar-form navbar-left">
+                          <div class="input-group">
+                              <label for="statusFilter" style="color: whitesmoke">Company Status</label>
+                                      <select class="form-control" id="statusFilter" onchange="companyStatusChange()">
+                                        <option>operating</option>
+                                        <option>acquired</option>
+                                        <option>ipo</option>
+                                        <option>closed</option>
+                                      </select>
+                          </div>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                          <div class="input-group">
+                                <label for="fundingSlider" style="color: whitesmoke">Total Funding</label>
+                                <span>
+                                  <input type="text" id="fundingAmount" readonly style="width: 50px;border:0;  font-weight:bold;">
+                                </span>
+                                <div id="fundingSlider" class="ui-slider-handle"></div>
+                              </div>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <div class="input-group">
+                                <label for="dateRangeSlider" style="color: whitesmoke">Founding Date</label><br/>
+                                <div id="dateRangeSlider" class="ui-slider-range"></div>
+                              </div>
+                            &nbsp;&nbsp;
+                            <div class="input-group">
+                                <span>
+                                  <input type="text" id="fromDateId" readonly style="width: 50px;border:0; color:#404198; font-weight:bold;">
+                                  <label style="width:30px;color:whitesmoke; font-weight:bold;"> To  </label>
+                                  <input type="text" id="toDateId" readonly style="width: 50px;border:0; color:#404198; font-weight:bold;">
+                                </span>
+                            </div>
+                        </form>
+                </div>
+            </nav>
+
+         </div>
+          <div class="chart-notes">
+
+          </div>
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="col-md-5">
+          <div class="row">
+              <div class="col-md-12">
+                        <div class="chart-wrapper">
+
+              <div class="chart-title">
+                Company Categeories
+              </div>
+              <div class="chart-stage" id="barChart" style="overflow: auto; height: 290px; max-width: 100%; overflow-x: hidden">
+                    		<div class="legend"></div>
+		                    <div class="chart"></div>
+              </div>
+              <div class="chart-notes">
+                Number of companies per category
+              </div>
+        </div>
+              </div>
+          </div>
+          <div class ="row">
+              <div class="col-md-12">
+                <div class="chart-wrapper">
+              <div class="chart-title">
+                Individual Companies
+              </div>
+              <div class="chart-stage" id="scatterPlot" style ="overflow: hidden; height: 300px">
+                  <div class = "scatterchart"></div>
+              </div>
+              <div class="chart-notes">
+                Depicts the Investors and Funding Rounds
+              </div>
+            </div>
+              </div>
+          </div>
+      </div>
+    </div>
+
+  </div>
+
+<script src="./static/js/charts.js"></script>
+
+</body>
+</html>

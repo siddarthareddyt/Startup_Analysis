@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Startups Viz</title>
+  <link rel="stylesheet" href="./static/lib/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./static/lib/css/keen-dashboards.css">
+  <link rel="stylesheet" href="./static/lib/css/jquery-ui.css">
+  <script src="./static/lib/js/jquery.min.js"></script>
+  <script src="./static/lib/js/jquery-ui.js"></script>
+  <script src="./static/lib/js/bootstrap.min.js"></script>
+  <script src="./static/lib/js/holder.js"></script>
+  <script src="./static/lib/js/d3.js"></script>
+  <script src="./static/lib/js/queue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+  <script>
+    Holder.add_theme("white", { background:"#fff", foreground:"#a7a7a7", size:10 });
+  </script>
+
+  <script src="./static/lib/js/keen.min.js"></script>
+  <script src="./static/lib/js/meta.js"></script>
+    <style>
+#R, #G, #B {
+	width: 300px;
+}
+.label {
+  font-size: .9em;
+}
+.label.strong {
+  font-weight: 900;
+}
+.bar-label {
+  font-size: .8em;
+  fill: #fff;
+}
+.legend {
+  font-size: .9em;
+  margin-bottom: 10px;
+}
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  margin-left: 8px;
+}
+.swatch:first-of-type {
+  margin-left: 0px;
+}
+
+
+#fundingSlider .ui-slider-handle { background: #729fcf; }
+#dateRangeSlider .ui-slider-range { background: #729fcf; }
+
+body{
+    overflow: hidden;
+}
+        body.application > .container-fluid{
+
+        }
+
+        .tooltip {
+        position: absolute;
+        text-align: center;
+        width: 60px;
+        height: 28px;
+        padding: 2px;
+        font: 12px sans-serif;
+        font-weight: bold;
+        background: yellow;
+        border: 0px;
+        border-radius: 8px;
+}
+
+    </style>
+</head>
+<body class="application">
+
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="./">Home</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+
+    <div class="row">
+
+      <div class="col-sm-10">
+
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Cell Title
+              </div>
+              <div class="chart-stage" id="choropleth">
+
+                  Choropleth Here
+              </div>
+              <div class="chart-notes">
+                Notes about this chart
+              </div>
+            </div>
+      </div>
+
+      <div class="col-sm-2">
+        <div class="chart-wrapper">
+          <div class="chart-title">
+            Cell Title
+          </div>
+          <div class="chart-stage" id="filterOptions">
+              <div class="container" style="width:auto;">
+                      <div class="panel panel-primary">
+                          <div class="panel-heading">Filters</div>
+                          <div class="panel-body">
+                              <div class="form-group">
+                                <label for="statusFilter">Company Status</label>
+                                      <select class="form-control" id="statusFilter" onchange="companyStatusChange()">
+                                        <option>operating</option>
+                                        <option>acquired</option>
+                                        <option>ipo</option>
+                                        <option>closed</option>
+                                      </select>
+                              </div>
+                              <div class="form-group">
+                                <label for="fundingSlider">Total Funding</label>
+                                <span>
+                                  <label for="fundingAmount" style="color:#404198; font-weight:bold;">Threshold:</label>
+                                  <input type="text" id="fundingAmount" readonly style="width: 50px;border:0; color:#404198; font-weight:bold;">
+                                </span>
+                                <div id="fundingSlider" class="ui-slider-handle"></div>
+                              </div>
+
+                              <div class="form-group">
+                                <label for="dateRangeSlider">Founding Date</label><br/>
+                                <span>
+                                  <input type="text" id="fromDateId" readonly style="width: 50px;border:0; color:#404198; font-weight:bold;">
+                                  <label style="width:30px;color:#404198; font-weight:bold;"> To  </label>
+                                  <input type="text" id="toDateId" readonly style="width: 50px;border:0; color:#404198; font-weight:bold;">
+                                </span>
+                                <div id="dateRangeSlider" class="ui-slider-range"></div>
+                              </div>
+                          </div>
+                      </div>
+              </div>
+
+         </div>
+          <div class="chart-notes">
+            Notes about this chart
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+      <div class="row">
+          <div class="col-sm-12">
+                <div class="row">
+                <div class="col-sm-7">
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Cell Title
+              </div>
+              <div class="chart-stage" id="scatterPlot">
+                  Scatter Plot Here
+              </div>
+              <div class="chart-notes">
+                Notes about this chart
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-5">
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Company Categeories
+              </div>
+              <div class="chart-stage" id="barChart" style="overflow: auto; height: 260px; max-width: 100%; overflow-x: hidden">
+                    		<div class="legend"></div>
+		                    <div class="chart"></div>
+              </div>
+              <div class="chart-notes">
+                Number of companies categeory wise
+              </div>
+            </div>
+          </div>
+                </div>
+          </div>
+      </div>
+
+  </div>
+
+<script type="text/javascript">
+
+var width = 500, barHeight = 25, barPadding = 3, textY = 16;
+
+var margins = {
+                top:0,
+                bottom:0,
+                left:120,
+                right:0
+              };
+
+  var x = d3.scaleLinear()
+          .range([0,width - margins.left])
+          .domain([0,100]);
+
+var percentKeys = [], countKeys = [];
+
+var colors = ['#3D7E98','#67986B'];
+var brightColors = ['#0F5598', '#2A9827'];
+var color_all = true;
+
+$( "#fundingSlider" ).slider({
+	animate: "fast",
+    create: function( event, ui ) {
+        $( "#fundingAmount" ).val( "$" + 50);
+    },
+    slide: function( event, ui ) {
+        $( "#fundingAmount" ).val( "$" + ui.value);
+    }
+
+});
+
+$( "#fundingSlider" ).slider( "option", "max", 100 );
+$( "#fundingSlider" ).slider( "option", "min", 10 );
+$( "#fundingSlider" ).slider( "option", "value", 50 );
+
+
+$( "#dateRangeSlider" ).slider({
+	animate: "fast",
+    range:true,
+    values: [2000, 2015],
+    create: function( event, ui ) {
+        $( "#fromDateId" ).val(2000);
+        $( "#toDateId" ).val(2015);
+    },
+    slide: function( event, ui ) {
+        $( "#fromDateId" ).val(ui.values[0]);
+        $( "#toDateId" ).val(ui.values[1]);
+    }
+
+});
+
+$( "#dateRangeSlider" ).slider( "option", "max", 2015 );
+$( "#dateRangeSlider" ).slider( "option", "min", 1980 );
+
+renderBarChart();
+
+function companyStatusChange(){
+      var thresholdFund = $( "#fundingSlider" ).slider( "value" );
+      var county = "Dallas";
+      var status = $("#statusFilter").val();
+      var fromYear = $( "#dateRangeSlider" ).slider( "values", 0 );
+      var category = "Mobile";
+      var toYear = $( "#dateRangeSlider" ).slider( "values", 1 );
+
+      updateBarGraph(thresholdFund, status, county, fromYear, toYear);
+}
+
+function renderBarChart(){
+        queue().defer(d3.json, "/startupviz/barchart/categories/?threshold=500000&status=operating&county=Dallas&fromYear=2000&toYear=2015")
+               .await(createBarChart);
+}
+
+function updateBarGraph(threshold, status, county, fromYear, toYear){
+queue().defer(d3.json, "/startupviz/barchart/categories/?threshold="+threshold+"&status="+status+"&county="+county+"&fromYear="+fromYear+"&toYear="+toYear)
+               .await(updateBarChart);
+}
+function createBarChart(error, data){
+
+  data = getPercentages(data);
+
+  data = addAll(data, countKeys);
+
+  data = sortData(data, percentKeys);
+
+  var svg = d3.select(".chart")
+            .append("svg")
+            .attr("width", width)
+            .style('fill', 'black');
+
+
+  $('.legend').css('margin-left', margins.left);
+  countKeys.forEach(function(countKey,i){
+    $('.legend').append('<div class="swatch" style="background:' + colors[i] + '"></div>' + countKey);
+  });
+
+  // now that the data is ready, calculate the height
+  var height = (data.length * barHeight) + (barPadding * 3);
+
+  d3.select('svg')
+    .attr("height", height);
+
+  svg.selectAll('.label')
+     .data(data,function(d) {
+                    return d.category_list;
+          })
+     .enter()
+     .append('text')
+     .attr('class', function(d){
+                       var label;
+                       d.category_list == 'total' ? label = 'label strong' : label = 'label';
+                       return label;
+                    })
+     .attr('x', margins.left)
+     .attr('y', function(d,i){ return padding(d,i); })
+     .attr('dy', textY)
+     .attr('text-anchor', 'end')
+      .style('font', 'bold 15px sans-serif')
+     .text(function(d){ return d.category_list.charAt(0).toUpperCase() + d.category_list.slice(1); });
+
+    var tip = d3.select("#barChart")
+              .append("div")
+              .attr("class", "tooltip")
+              .style("opacity", 0);
+
+  percentKeys.forEach(function(key,i){
+
+    svg.selectAll('.bar .' + key)
+       .data(data,function(d) {
+                    return d.category_list;
+          })
+       .enter()
+       .append('rect')
+       .attr('class', 'bar ' + key)
+       .attr('width', function(d,i){ return x(d[key]); })
+       .attr('height', barHeight - barPadding)
+       .attr('x', function(d){ return widths(percentKeys,key,d); })
+       .attr('y', function(d,i){ return padding(d,i); })
+       .on("mouseover", function(d) {
+                        if(color_all){
+                                d3.select(this)
+                                  .style('fill', brightColors[i]);
+                        }
+
+ {#                           tip.transition()
+                               .duration(200)
+                               .style("opacity", .9);
+                            tip.html(d.category_list)
+                               .style("left", widths(percentKeys,key,d))
+                               .style("top", padding(d,i));#}
+
+                            svg.selectAll('.label')
+                               .filter(function(text) {
+                                   return text.category_list===d.category_list.charAt(0).toUpperCase() + d.category_list.slice(1);
+                               })
+                               .transition().duration(100).style('font','bold 20px sans-serif');
+       }).on("mouseout", function(d) {
+                    if(color_all) {
+                        d3.select(this)
+                            .transition()
+                            .duration(250)
+                            .style("fill", colors[i]);
+                    }
+
+               {#             tip.transition()
+                               .duration(200)
+                               .style("opacity", 0);#}
+
+                              svg.selectAll('.label')
+                               .filter(function(text) {
+                                   return text.category_list===d.category_list.charAt(0).toUpperCase() + d.category_list.slice(1);
+                               })
+                               .transition().duration(100).style('font','bold 15px sans-serif');
+       }).on("click", function(d){
+        if(color_all == true)
+       {
+       d3.selectAll('rect')
+         .style('fill','#929374');
+         d3.select(this)
+         .style('fill', brightColors[i]);
+
+         color_all = false;
+
+       }
+       else
+       {
+
+         d3.selectAll('rect.bar.belowpercent')
+         .style("fill", colors[0]);
+         d3.selectAll('rect.bar.abovepercent')
+         .style("fill", colors[1]);
+         color_all = true;
+       }
+       });
+
+    d3.selectAll('.' + key)
+      .style('fill', colors[i]);
+
+    svg.selectAll('.bar-label .' + key)
+       .data(data,function(d) {
+                    return d.category_list;
+          })
+       .enter()
+       .append('text')
+       .attr('class', 'bar-label ' + key)
+       .attr('x', function(d){
+                        var barX;
+                        key !== percentKeys[percentKeys.length-1] ? barX = widths(percentKeys,key,d) + 5 : barX = width - 5;
+                        return barX;
+            })
+       .attr('dy', textY)
+       .attr('y', function(d,i){ return padding(d,i); })
+       .attr('text-anchor', function(d){
+                                var ta;
+                                key == percentKeys[percentKeys.length-1] ? ta = 'end' : ta = 'start';
+                                return ta;
+            })
+       .text(function(d){
+                    var text;
+                    d[key] < 5 ? text = '' : text = Math.round(d[key]) + pct(d, data[0].category_list, data[data.length-1].category_list);
+                    return text;
+        });
+
+  });
+
+  $( "#fundingSlider" ).on( "slidechange", function( event, ui ) {
+      var thresholdFund = $( "#fundingSlider" ).slider( "value" );
+      var county = "Dallas";
+       var status = $("#statusFilter").val();
+      var fromYear = $( "#dateRangeSlider" ).slider( "values", 0 );
+      var category = "Mobile";
+      var toYear = $( "#dateRangeSlider" ).slider( "values", 1 );
+
+    updateBarGraph(thresholdFund, status, county, fromYear, toYear);
+    //updateScatterPlot(category, status, county, fromYear, toYear);
+    //updateBarGraph(thresholdFund, category, status, county, fromYear, toYear);
+
+} );
+
+  $( "#dateRangeSlider" ).on( "slidechange", function( event, ui ) {
+      var thresholdFund = $( "#fundingSlider" ).slider( "value" );
+      var county = "Dallas";
+       var status = $("#statusFilter").val();
+      var fromYear = $( "#dateRangeSlider" ).slider( "values", 0 );
+      var toYear = $( "#dateRangeSlider" ).slider( "values", 1 );
+      var category = "Mobile";
+    updateBarGraph(thresholdFund, status, county, fromYear, toYear);
+    //updateScatterPlot(category, status, county, fromYear, toYear);
+    //updateBarGraph(thresholdFund, category, status, county, fromYear, toYear);
+} );
+
+
+}
+
+function updateBarChart(error, data){
+  percentKeys = [];
+  countKeys = [];
+
+  d3.select('svg')
+    .remove();
+  $('.swatch').remove();
+
+ createBarChart(error, data);
+
+}
+
+function padding(d,i){
+  var barI;
+  d.category_list == 'total' ? barI = i * barHeight + (barPadding * 2) : barI = i * barHeight;
+  return barI;
+}
+
+function pct(d, first, last){
+  var extra;
+  d.category_list == first || d.category_list == last ? extra = '%' : extra = '';
+  return extra;
+}
+
+function widths(keys,key,d){
+
+  if (key == keys[0]) {
+    return margins.left+10;
+  } else if (key == keys[1]){
+    return margins.left +10+ x(d[keys[0]]);
+  }
+
+}
+
+function getPercentages(data) {
+   for(var m =0; m<data.length;m++){
+        arra=[];
+        _.keys(data[m]).forEach(function(d,i){
+        if (i!==2){
+            arra.push(+data[m][d]);
+            data[d] = +data[d];
+        }
+    });
+   var sum = arra.reduce(function(a,b){return a+b}, 0);
+
+    _.keys(data[m]).forEach(function(k,i){
+                        i !== 2 ? data[m][k + 'percent'] = +data[m][k]/sum*100 : null;
+                    });
+    }
+
+
+  _.keys(data[0]).forEach(function(d,i){
+    if (d !="category_list"){
+        d.includes('percent') ? percentKeys.push(d) : countKeys.push(d);
+    }
+  });
+    return data;
+}
+
+function sortData(data, percentKeys) {
+  var sortedData = _.sortBy(data,percentKeys[0]).reverse(), total = _.where(sortedData,{category_list:'total'}), rem = _.reject(sortedData,{category_list:'total'}), dat = [];
+  rem.forEach(function(r){ dat.push(r); });
+  dat.push(total[0]);
+  return dat;
+}
+
+function addAll(data,keys){
+
+  var total = {};
+  var arrayA = [];
+  keys.forEach(function(key){
+    var arrayB = [];
+    data.forEach(function(d){
+      arrayB.push(d[key]);
+    })
+    var sumB = arrayB.reduce(function(a,b){ return a+b }, 0);
+    total[key] = sumB;
+    arrayA.push(sumB);
+  })
+
+  var sumA = arrayA.reduce(function(a,b){ return a+b }, 0);
+
+  keys.forEach(function(key){
+    total[key + 'percent'] = total[key] / sumA * 100;
+  });
+
+  total.category_list = 'total';
+
+  data.push(total);
+
+  return data;
+}
+
+		</script>
+
+</body>
+</html>
