@@ -7,5 +7,5 @@
 4. Funding rounds.
 
 
-[Link](url) and ![Image](src)
+![Startups](/startups.png)
 
