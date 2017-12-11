@@ -38,7 +38,7 @@ Shows startup over the last 20 years and effect of
 * Clone this repo.
 
 ### Setup Mongo
-* Install and setup Mongo. Refer ![Startups](https://docs.mongodb.com/manual/installation/) for specific instructions. 
+* Install and setup Mongo. Refer ![MongoDB Intallation](https://docs.mongodb.com/manual/installation/) for specific instructions. 
 * Import the final_data1.csv into a collection with name **'companies'**.
 * Import statesnums.csv into **'statenums'** collection.
 * Import uscounty1.json into **'uscounty'** collection.
