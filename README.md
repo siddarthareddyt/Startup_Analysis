@@ -18,19 +18,19 @@ Shows startup over the last 20 years and effect of
 * Blue dots represent compnies with funding above threshold.
 * Ash color dots represent companies with funding below threshold.
 
-![Startups](static/gifs/start2.gif)
+![Startups](static/gifs/startup2.gif)
 
-* Overview in the bay area
+* Overview of the bay area
 
-![Startups](static/gifs/start1.gif)
+![Startups](static/gifs/startup1.gif)
 
 * Inspecting Los Angeles from 2005 to 2015
 
-![Startups](static/gifs/start3.gif)
+![Startups](static/gifs/startup3.gif)
 
 * Browsing varoius categories and companies
 
-![Startups](static/gifs/start4.gif)
+![Startups](static/gifs/startup4.gif)
 
 * Exploring closed and acquired companies.
 
@@ -38,6 +38,7 @@ Shows startup over the last 20 years and effect of
 * Clone this repo.
 
 ### Setup Mongo
+* Install and setup Mongo. Refer ![Startups](https://docs.mongodb.com/manual/installation/) for specific instructions. 
 * Import the final_data1.csv into a collection with name **'companies'**.
 * Import statesnums.csv into **'statenums'** collection.
 * Import uscounty1.json into **'uscounty'** collection.
