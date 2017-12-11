@@ -18,19 +18,19 @@ Shows startup over the last 20 years and effect of
 * Blue dots represent compnies with funding above threshold.
 * Ash color dots represent companies with funding below threshold.
 
-      ![Startups](static/gifs/startup2.gif)
+![Startups](static/gifs/startup2.gif)
 
 * Overview of the bay area
 
-      ![Startups](static/gifs/startup1.gif)
+![Startups](static/gifs/startup1.gif)
 
 * Inspecting Los Angeles from 2005 to 2015
 
-      ![Startups](static/gifs/startup3.gif)
+ ![Startups](static/gifs/startup3.gif)
 
 * Browsing varoius categories and companies
 
-      ![Startups](static/gifs/startup4.gif)
+ ![Startups](static/gifs/startup4.gif)
 
 * Exploring closed and acquired companies.
 
